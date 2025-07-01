@@ -6,7 +6,6 @@ app = Flask(__name__)
 grocery_list = []
 tax_rate = 0.0
 
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     global tax_rate
@@ -40,7 +39,6 @@ def index():
     totals = calculate_totals()
     return render_template("index.html", grocery_list=grocery_list, tax_rate=tax_rate, edit_item=None, edit_id=None, **totals)
 
-
 @app.route("/edit/<int:item_id>")
 def edit_item(item_id):
     if 0 <= item_id < len(grocery_list):
@@ -50,13 +48,11 @@ def edit_item(item_id):
                                edit_item=item, edit_id=item_id, **totals)
     return redirect(url_for("index"))
 
-
 @app.route("/delete/<int:item_id>")
 def delete_item(item_id):
     if 0 <= item_id < len(grocery_list):
         grocery_list.pop(item_id)
     return redirect(url_for("index"))
-
 
 @app.route("/download_csv")
 def download_csv():
@@ -70,13 +66,11 @@ def download_csv():
     totals = calculate_totals()
     writer.writerow([])
     writer.writerow(['Tax Rate (%)', 'Tax Amount', 'Final Total'])
-    writer.writerow(
-        [f"{tax_rate:.2f}", f"{totals['tax_amount']:.2f}", f"{totals['final_total']:.2f}"])
+    writer.writerow([f"{tax_rate:.2f}", f"{totals['tax_amount']:.2f}", f"{totals['final_total']:.2f}"])
 
     output.seek(0)
     return send_file(io.BytesIO(output.getvalue().encode()), mimetype='text/csv',
                      as_attachment=True, download_name="grocery_list.csv")
-
 
 def calculate_totals():
     grand_total = sum(
@@ -91,9 +85,5 @@ def calculate_totals():
         "final_total": final_total
     }
 
-
 if __name__ == "__main__":
-    import os
-    # Use PORT env var or default 5000 locally
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(debug=True)
