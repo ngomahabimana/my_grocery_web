@@ -3,10 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 import csv
 import io
 import os
+from decimal import Decimal
 
 app = Flask(__name__)
 
-# Use DATABASE_URL from Render, fallback to SQLite locally
+# Use DATABASE_URL from env, fallback to SQLite for local dev
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'DATABASE_URL',
     'sqlite:///grocery_local.db'
@@ -28,7 +29,8 @@ class GroceryItem(db.Model):
 def calculate_totals(items, tax_rate):
     grand_total = sum((item.unit_price - item.discount)
                       * item.quantity for item in items)
-    tax_amount = grand_total * (tax_rate / 100)
+    tax_rate_decimal = Decimal(str(tax_rate)) / Decimal("100")
+    tax_amount = grand_total * tax_rate_decimal
     final_total = grand_total + tax_amount
     return grand_total, tax_amount, final_total
 
