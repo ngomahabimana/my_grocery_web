@@ -3,41 +3,107 @@
 <head>
     <title>Grocery Tracker</title>
     <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+
+        input, button {
+            padding: 6px 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <h1>Grocery Tracker</h1>
 
     <h3>Set Tax Rate</h3>
-    <form method="post" action="{{ url_for('index') }}">
+    <form method="post">
         <input type="number" step="0.01" name="tax_rate" value="{{ tax_rate }}">
         <button type="submit" name="set_tax">Set Tax</button>
     </form>
 
     <h3>{% if edit_item %}Edit Item{% else %}Add Item{% endif %}</h3>
-    <form method="post" action="{% if edit_item %}{{ url_for('edit_item', item_id=edit_item.id) }}{% else %}{{ url_for('index') }}{% endif %}">
-    <input name="name" placeholder="Name" required value="{{ edit_item.name if edit_item else '' }}">
-    <input name="quantity" type="number" placeholder="Quantity" min="1" required value="{{ edit_item.quantity if edit_item else '' }}">
-    <input name="unit_price" type="number" step="0.01" placeholder="Unit Price" min="0" required value="{{ edit_item.unit_price if edit_item else '' }}">
-    <input name="discount" type="number" step="0.01" placeholder="Discount" min="0" required value="{{ edit_item.discount if edit_item else '' }}">
-    {% if edit_item %}
-        <button type="submit">Save Changes</button>
-        <a href="{{ url_for('index') }}">Cancel</a>
-    {% else %}
-        <button type="submit">Add Item</button>
-    {% endif %}
-</form>
+    <form method="post">
+        <input name="name" placeholder="Name" required value="{{ edit_item.name if edit_item }}">
+        <input name="quantity" type="number" placeholder="Quantity" min="1" required value="{{ edit_item.quantity if edit_item }}">
+        <input name="unit_price" type="number" step="0.01" placeholder="Unit Price" min="0" required value="{{ edit_item.unit_price if edit_item }}">
+        <input name="discount" type="number" step="0.01" placeholder="Discount" min="0" required value="{{ edit_item.discount if edit_item }}">
+        {% if edit_item %}
+            <input type="hidden" name="edit_id" value="{{ edit_item.id }}">
+            <button type="submit">Save Changes</button>
+            <a href="{{ url_for('index') }}">Cancel</a>
+        {% else %}
+            <button type="submit">Add Item</button>
+        {% endif %}
+    </form>
 
     <h3>Grocery List</h3>
+    <input type="text" id="searchBox" placeholder="Search item..." onkeyup="filterTable()">
+
     <table>
+        <thead>
         <tr>
             <th>#</th><th>Name</th><th>Qty</th><th>Unit Price</th><th>Discount</th><th>Total</th><th>Action</th>
         </tr>
+        </thead>
+        <tbody>
         {% for item in grocery_list %}
         <tr>
-            <td>{{ loop.index }}</td>
+            <td>{{ loop.index0 }}</td>
             <td>{{ item.name }}</td>
             <td>{{ item.quantity }}</td>
             <td>${{ "%.2f"|format(item.unit_price) }}</td>
@@ -49,6 +115,7 @@
             </td>
         </tr>
         {% endfor %}
+        </tbody>
     </table>
 
     <h3>Summary</h3>
@@ -57,5 +124,20 @@
     <p><strong>Final Total: ${{ "%.2f"|format(final_total) }}</strong></p>
 
     <a href="{{ url_for('download_csv') }}">Download CSV</a>
+
+    <script src="https://unpkg.com/tablesort@5.2.1/dist/tablesort.min.js"></script>
+    <script>
+        new Tablesort(document.querySelector("table"));
+
+        function filterTable() {
+            let input = document.getElementById("searchBox").value.toLowerCase();
+            let rows = document.querySelectorAll("table tbody tr");
+            rows.forEach(row => {
+                let itemName = row.cells[1].textContent.toLowerCase();
+                row.style.display = itemName.includes(input) ? "" : "none";
+            });
+        }
+    </script>
 </body>
 </html>
+
