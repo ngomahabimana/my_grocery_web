@@ -38,17 +38,11 @@ def calculate_totals(items, tax_rate):
 @app.route("/", methods=["GET", "POST"])
 def index():
     tax_rate = float(request.args.get("tax_rate", 0.0))
+
     if request.method == "POST":
         if "set_tax" in request.form:
             tax_rate = float(request.form["tax_rate"])
             return redirect(url_for("index", tax_rate=tax_rate))
-        elif "edit_id" in request.form:
-            item = GroceryItem.query.get(int(request.form["edit_id"]))
-            item.name = request.form["name"]
-            item.quantity = int(request.form["quantity"])
-            item.unit_price = float(request.form["unit_price"])
-            item.discount = float(request.form["discount"])
-            db.session.commit()
         else:
             item = GroceryItem(
                 name=request.form["name"],
@@ -58,7 +52,7 @@ def index():
             )
             db.session.add(item)
             db.session.commit()
-        return redirect(url_for("index", tax_rate=tax_rate))
+            return redirect(url_for("index", tax_rate=tax_rate))
 
     items = GroceryItem.query.all()
     grand_total, tax_amount, final_total = calculate_totals(items, tax_rate)
@@ -67,11 +61,20 @@ def index():
                            final_total=final_total, edit_item=None)
 
 
-@app.route("/edit/<int:item_id>")
+@app.route("/edit/<int:item_id>", methods=["GET", "POST"])
 def edit_item(item_id):
     tax_rate = float(request.args.get("tax_rate", 0.0))
-    items = GroceryItem.query.all()
     item = GroceryItem.query.get(item_id)
+
+    if request.method == "POST":
+        item.name = request.form["name"]
+        item.quantity = int(request.form["quantity"])
+        item.unit_price = float(request.form["unit_price"])
+        item.discount = float(request.form["discount"])
+        db.session.commit()
+        return redirect(url_for("index", tax_rate=tax_rate))
+
+    items = GroceryItem.query.all()
     grand_total, tax_amount, final_total = calculate_totals(items, tax_rate)
     return render_template("index.html", grocery_list=items, tax_rate=tax_rate,
                            grand_total=grand_total, tax_amount=tax_amount,
